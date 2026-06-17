@@ -29,6 +29,10 @@ export default function NewTicket() {
   function handlePhotoCapture(e) {
     const files = Array.from(e.target.files);
     files.forEach(file => {
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Photo too large. Max 10MB per photo.');
+        return;
+      }
       const reader = new FileReader();
       reader.onload = () => {
         setMedia(prev => [...prev, { type: 'photo', data: reader.result, name: file.name }]);
@@ -79,8 +83,13 @@ export default function NewTicket() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.plateNumber.trim()) {
+    const cleanPlate = form.plateNumber.toUpperCase().trim();
+    if (!cleanPlate) {
       alert('Plate number is required');
+      return;
+    }
+    if (cleanPlate.length > 15 || !/^[A-Z0-9 \-]{2,15}$/.test(cleanPlate)) {
+      alert('Invalid plate format. Use letters, numbers, spaces, and hyphens (2-15 characters).');
       return;
     }
     if (!form.offenseType) {
@@ -106,7 +115,8 @@ export default function NewTicket() {
 
       navigate(`/ticket/${ticketId}`);
     } catch (err) {
-      alert('Error saving ticket: ' + err.message);
+      console.error('Ticket creation failed:', err);
+      alert('Could not save the ticket. Please try again.');
       setSaving(false);
     }
   }
@@ -125,6 +135,7 @@ export default function NewTicket() {
             placeholder="e.g. ABC 1234"
             value={form.plateNumber}
             onChange={e => update('plateNumber', e.target.value)}
+            maxLength={15}
             style={{ textTransform: 'uppercase', fontFamily: 'monospace', fontSize: 20, fontWeight: 700, letterSpacing: 2 }}
             autoFocus
           />

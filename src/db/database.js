@@ -88,8 +88,12 @@ export async function initDatabase() {
 export function saveDatabase() {
   if (!db) return;
   const data = db.export();
-  const base64 = btoa(String.fromCharCode(...data));
-  localStorage.setItem(DB_KEY, base64);
+  let binary = '';
+  const chunkSize = 8192;
+  for (let i = 0; i < data.length; i += chunkSize) {
+    binary += String.fromCharCode.apply(null, data.subarray(i, i + chunkSize));
+  }
+  localStorage.setItem(DB_KEY, btoa(binary));
 }
 
 export function createTicket({ plateNumber, offenseType, description, locationLat, locationLng, locationAddress, notes }) {
@@ -162,7 +166,12 @@ export function getTicketById(id) {
   return ticket;
 }
 
+const VALID_STATUSES = ['issued', 'notified', 'paid', 'appealed', 'dismissed', 'overdue'];
+
 export function updateTicketStatus(id, status) {
+  if (!VALID_STATUSES.includes(status)) {
+    throw new Error('Invalid status');
+  }
   db.run("UPDATE tickets SET status = ?, updated_at = datetime('now','localtime') WHERE id = ?", [status, id]);
   saveDatabase();
 }

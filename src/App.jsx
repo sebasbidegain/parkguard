@@ -35,7 +35,7 @@ function App() {
   if (error) {
     return (
       <div className="app-loading">
-        <p className="error">Failed to initialize database: {error}</p>
+        <p className="error">Failed to initialize the app. Please restart.</p>
       </div>
     );
   }

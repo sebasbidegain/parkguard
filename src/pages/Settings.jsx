@@ -50,6 +50,11 @@ export default function Settings() {
     const fine = parseFloat(newFine);
     if (isNaN(fine) || fine < 0) { setError('Fine must be a valid positive number'); return; }
     const key = newLabel.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    const existing = offenses.find(o => o.key === key);
+    if (existing) {
+      setError(`An offense type with a similar name already exists: "${existing.label}"`);
+      return;
+    }
     addOffenseType(key, newLabel.trim(), fine);
     setNewLabel('');
     setNewFine('');
